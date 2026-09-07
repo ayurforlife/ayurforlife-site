@@ -13,6 +13,13 @@ TITLE = "Домът на Аюрведа"
 TAGLINE = "Класическа Аюрведа в с. Малоградец"
 WP = "ayurvedaforlifeinfo.wordpress.com"
 DATE_INDEX = {}   # "/YYYY/MM/DD/" -> new url, for old permalinks whose slug later changed
+DROP_POSTS = {189}          # duplicate of 214 ("четките за зъби"), older and superseded
+DEAD_HOST = 'ayurvedaforlife.info'   # previous site of theirs, domain no longer resolves
+# the only two dead-site topics that exist on this site now - keep those as live links
+DEAD_MAP = {
+    '/blog/10-most-important-ayurvedic-rules-of-eating': '/blog/10-most-important-ayurvedic-rules-of-eating/',
+    '/blog/what-is-ayurvedic-vegetarianism': '/blog/what-is-ayurvedic-vegetarianism/',
+}
 LEGACY = set()    # legacy WP paths we resolved, to emit redirect stubs for
 
 BG_MONTHS = ["януари","февруари","март","април","май","юни","юли","август","септември","октомври","ноември","декември"]
@@ -66,8 +73,9 @@ BLOCK_OK = {'p','br','strong','b','em','i','u','s','ul','ol','li','blockquote','
             'iframe','sub','sup','pre','code','dl','dt','dd'}
 
 class Cleaner(HTMLParser):
-    def __init__(self, linkmap, uploads):
+    def __init__(self, linkmap, uploads, self_url=None):
         super().__init__(convert_charrefs=False)
+        self.self_url = self_url
         self.o = []
         self.skip = 0
         self.skip_tag = None
@@ -89,6 +97,10 @@ class Cleaner(HTMLParser):
 
     def map_link(self, url):
         u = html.unescape(url)
+        if DEAD_HOST in u:
+            path = re.sub(r'^https?://[^/]+', '', u).rstrip('/')
+            local = DEAD_MAP.get(path)
+            return local if local and local != self.self_url else ''   # '' -> anchor is unwrapped
         if WP in u:
             path = re.sub(r'^https?://[^/]+', '', u)
             if path in self.linkmap:
@@ -178,11 +190,21 @@ class Cleaner(HTMLParser):
     def handle_charref(self, n):
         if not self.skip: self.o.append(f'&#{n};')
 
-def clean(body, linkmap, uploads):
-    c = Cleaner(linkmap, uploads)
+def clean(body, linkmap, uploads, self_url=None):
+    c = Cleaner(linkmap, uploads, self_url)
     c.feed(body)
     c.close()
     out = ''.join(c.o)
+    # drop paragraphs that were nothing but a pointer to the dead site or the old catalogue
+    def _prune(m):
+        block = m.group(0)
+        text = re.sub(r'\s+', ' ', html.unescape(re.sub(r'<[^>]+>', '', block))).strip()
+        if 'drive.google.com' in block:
+            return ''
+        if re.fullmatch(r'(?:https?://)?(?:www\.)?ayurvedaforlife\.info[\s\d/.]*', text, re.I):
+            return ''
+        return block
+    out = re.sub(r'<p>.*?</p>', _prune, out, flags=re.S)
     out = re.sub(r'<p>(\s|&nbsp;|<br\s*/?>)*</p>', '', out)
     out = re.sub(r'(?:<br\s*/?>\s*){3,}', '<br><br>', out)
     out = re.sub(r'\[/?(?:caption|gallery|embed)[^\]]*\]', '', out)
@@ -287,7 +309,7 @@ def redirect_stub(path, target):
 pages = json.loads((SRC / 'pages_full.json').read_text())
 posts = json.loads((SRC / 'posts_full.json').read_text())
 cats  = {c['id']: c for c in json.loads((SRC / 'cats.json').read_text())}
-posts = [p for p in posts if p.get('status', 'publish') == 'publish']
+posts = [p for p in posts if p.get('status', 'publish') == 'publish' and p['id'] not in DROP_POSTS]
 posts.sort(key=lambda p: p['date'], reverse=True)
 
 uploads = {str(p.relative_to(OUT / 'assets' / 'uploads')) for p in (OUT / 'assets' / 'uploads').rglob('*') if p.is_file()}
@@ -320,7 +342,7 @@ for cid, c in cats.items():
 
 # ---------------------------------------------------------------- transform
 for p in posts:
-    body, imgs = clean(p['content']['rendered'], linkmap, uploads)
+    body, imgs = clean(p['content']['rendered'], linkmap, uploads, p['_url'])
     p['_html'] = body
     p['_imgs'] = imgs
     p['title_t'] = strip_tags(p['title']['rendered'])
