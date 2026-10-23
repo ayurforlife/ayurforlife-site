@@ -248,7 +248,7 @@ def shell(inner, *, title, desc, canon, active='', og_img=None, extra_head=''):
 <a class="skip" href="#main">Към съдържанието</a>
 <header class="site">
   <div class="wrap bar">
-    <a class="brand" href="/"><img src="/assets/logo.png" alt="{TITLE}" width="450" height="188"><span class="brand-sub">с. Малоградец</span></a>
+    <a class="brand" href="/"><img src="/assets/logo.png" alt="{TITLE}" width="520" height="162"></a>
     <input type="checkbox" id="navtoggle" hidden>
     <label for="navtoggle" class="burger" aria-label="Меню"><span></span><span></span><span></span></label>
     <nav>{nav(active)}</nav>
