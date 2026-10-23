@@ -29,9 +29,9 @@ p{margin:0 0 1.1em}
 header.site{position:sticky;top:0;z-index:50;background:rgba(251,249,244,.92);
   backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
 .bar{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:74px}
-.brand{display:flex;align-items:baseline;gap:10px;text-decoration:none}
-.brand img{width:150px;height:auto}
-.brand-sub{font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
+.brand{display:flex;flex-direction:column;align-items:center;gap:2px;text-decoration:none}
+.brand img{width:165px;height:auto}
+.brand-sub{font-size:.78rem;line-height:1;letter-spacing:.14em;text-transform:uppercase;color:var(--soft)}
 header nav{display:flex;gap:26px}
 header nav a{font-size:.95rem;font-weight:500;color:var(--muted);text-decoration:none;padding:6px 0;
   border-bottom:2px solid transparent}
