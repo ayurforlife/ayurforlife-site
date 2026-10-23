@@ -212,7 +212,12 @@ def clean(body, linkmap, uploads, self_url=None):
     return out.strip(), c.images
 
 # ---------------------------------------------------------------- templates
-CSS_HREF = '/assets/css/site.css'
+import hashlib
+def _ver(p):                       # content hash, so Cloudflare's 4h edge cache
+    f = OUT / p.lstrip('/')        # cannot pin a stale asset after a deploy
+    return p + '?v=' + hashlib.md5(f.read_bytes()).hexdigest()[:8]
+CSS_HREF = _ver('/assets/css/site.css')
+LOGO_SRC = _ver('/assets/logo-floral.png')
 
 def nav(active=''):
     items = [('/', 'За нас', 'home'), ('/blog/', 'Статии', 'blog'),
@@ -248,7 +253,7 @@ def shell(inner, *, title, desc, canon, active='', og_img=None, extra_head=''):
 <a class="skip" href="#main">Към съдържанието</a>
 <header class="site">
   <div class="wrap bar">
-    <a class="brand" href="/"><img src="/assets/logo.png" alt="{TITLE}" width="520" height="162"></a>
+    <a class="brand" href="/"><img src="{LOGO_SRC}" alt="{TITLE}" width="520" height="162"></a>
     <input type="checkbox" id="navtoggle" hidden>
     <label for="navtoggle" class="burger" aria-label="Меню"><span></span><span></span><span></span></label>
     <nav>{nav(active)}</nav>
