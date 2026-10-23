@@ -218,6 +218,8 @@ def _ver(p):                       # content hash, so Cloudflare's 4h edge cache
     return p + '?v=' + hashlib.md5(f.read_bytes()).hexdigest()[:8]
 CSS_HREF = _ver('/assets/css/site.css')
 LOGO_SRC = _ver('/assets/logo-floral.png')
+FAV32 = _ver('/assets/favicon-32.png')
+FAVAPPLE = _ver('/assets/apple-touch-icon.png')
 
 def nav(active=''):
     items = [('/', 'За нас', 'home'), ('/blog/', 'Статии', 'blog'),
@@ -242,7 +244,8 @@ def shell(inner, *, title, desc, canon, active='', og_img=None, extra_head=''):
 <meta property="og:url" content="{SITE}{canon}">
 <meta property="og:image" content="{SITE}{og}">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="{FAV32}" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="{FAVAPPLE}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
