@@ -273,7 +273,7 @@ def shell(inner, *, title, desc, canon, active='', og_img=None, extra_head=''):
     </div>
     <div>
       <p class="ft">Контакти</p>
-      <p>Ивалин: <a href="tel:+359877717153">0877 717153</a><br>
+      <p>а.п. Ивалин Иванов: <a href="tel:+359877717153">0877 717153</a><br>
       <a href="mailto:ayurforlife@gmail.com">ayurforlife@gmail.com</a></p>
     </div>
     <div>
