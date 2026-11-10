@@ -14,6 +14,12 @@ TAGLINE = "Класическа Аюрведа в с. Малоградец"
 WP = "ayurvedaforlifeinfo.wordpress.com"
 DATE_INDEX = {}   # "/YYYY/MM/DD/" -> new url, for old permalinks whose slug later changed
 DROP_POSTS = {189}          # duplicate of 214 ("четките за зъби"), older and superseded
+# Ръчно подреждане по значимост (ID-та); всичко останало следва по дата, най-ново първо.
+PINNED = [365,   # Кримигана – противопаразитно прочистване и Виречана
+          637,   # 5 дни Кичари – лесното пролетно прочистване
+          547,   # Прочистване и изграждане – ролята на Расаяните
+          402,   # Аюрведични лечебни клизми (Басти) в домашни условия
+          335]   # Режим преди, по време и след прочиствания
 DEAD_HOST = 'ayurvedaforlife.info'   # previous site of theirs, domain no longer resolves
 # the only two dead-site topics that exist on this site now - keep those as live links
 DEAD_MAP = {
@@ -300,7 +306,6 @@ def card(p):
     return f"""<article class="card">
   <a class="card-img" href="{p['url']}">{thumb}</a>
   <div class="card-body">
-    <p class="meta">{bg_date(p['date'])}</p>
     <h3><a href="{p['url']}">{p['title']}</a></h3>
     <p class="ex">{esc(p['excerpt'])}</p>
   </div>
@@ -326,7 +331,8 @@ pages = json.loads((SRC / 'pages_full.json').read_text())
 posts = json.loads((SRC / 'posts_full.json').read_text())
 cats  = {c['id']: c for c in json.loads((SRC / 'cats.json').read_text())}
 posts = [p for p in posts if p.get('status', 'publish') == 'publish' and p['id'] not in DROP_POSTS]
-posts.sort(key=lambda p: p['date'], reverse=True)
+_pin = {pid: i for i, pid in enumerate(PINNED)}
+posts.sort(key=lambda p: (_pin.get(p['id'], len(PINNED)), [-ord(c) for c in p['date']]))
 
 uploads = {str(p.relative_to(OUT / 'assets' / 'uploads')) for p in (OUT / 'assets' / 'uploads').rglob('*') if p.is_file()}
 
@@ -417,7 +423,7 @@ front = f"""
 
 <section class="wrap band">
   <div class="sec-head">
-    <h2>Последни статии</h2>
+    <h2>Избрани статии</h2>
     <a class="more" href="/blog/">Всички статии →</a>
   </div>
   <div class="cards">{''.join(card(pv(p)) for p in latest)}</div>
@@ -467,8 +473,8 @@ for i, p in enumerate(posts):
     next_p = posts[i-1] if i > 0 else None
     tags = ''.join(f'<a class="chip" href="/category/{cat_slug[c]}/">{esc(cats[c]["name"])}</a>' for c in p['_cats'])
     nb = []
-    if next_p: nb.append(f'<a class="np next" href="{next_p["_url"]}"><span>По-нова статия</span>{esc(next_p["title_t"])}</a>')
-    if prev_p: nb.append(f'<a class="np prev" href="{prev_p["_url"]}"><span>По-стара статия</span>{esc(prev_p["title_t"])}</a>')
+    if next_p: nb.append(f'<a class="np prev" href="{next_p["_url"]}"><span>Предишна статия</span>{esc(next_p["title_t"])}</a>')
+    if prev_p: nb.append(f'<a class="np next" href="{prev_p["_url"]}"><span>Следваща статия</span>{esc(prev_p["title_t"])}</a>')
     ld = json.dumps({"@context":"https://schema.org","@type":"BlogPosting","headline":p['title_t'],
                      "datePublished":p['date'],"dateModified":p.get('modified',p['date']),
                      "author":{"@type":"Organization","name":TITLE},
@@ -479,7 +485,6 @@ for i, p in enumerate(posts):
 <article class="wrap article">
   <p class="crumbs"><a href="/">Начало</a> / <a href="/blog/">Статии</a></p>
   <h1>{esc(p['title_t'])}</h1>
-  <p class="meta">{bg_date(p['date'])}</p>
   <div class="chips">{tags}</div>
   <div class="prose">{p['_html']}</div>
   <nav class="npnav">{''.join(nb)}</nav>
@@ -491,7 +496,6 @@ for i, p in enumerate(posts):
 <article class="wrap article">
   <p class="crumbs"><a href="/">Начало</a> / <a href="/blog/">Статии</a></p>
   <h1>{esc(p['title_t'])}</h1>
-  <p class="meta">{bg_date(p['date'])}</p>
   <div class="chips">{tags}</div>
   <div class="prose">{p['_html']}</div>
   <nav class="npnav">{''.join(nb)}</nav>
