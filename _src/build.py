@@ -205,7 +205,15 @@ def clean(body, linkmap, uploads, self_url=None):
             return ''
         return block
     out = re.sub(r'<p>.*?</p>', _prune, out, flags=re.S)
-    out = re.sub(r'<p>(\s|&nbsp;|<br\s*/?>)*</p>', '', out)
+    # a paragraph with no text and no media is a WordPress spacer -- drop it,
+    # including the <p><strong>&nbsp;</strong></p> shape the exporter leaves behind
+    def _drop_empty(m):
+        block = m.group(0)
+        if re.search(r'(?i)<(img|iframe|video|audio|svg|hr|a)\b', block):
+            return block
+        text = html.unescape(re.sub(r'<[^>]+>', '', block))
+        return '' if not text.strip() else block
+    out = re.sub(r'(?s)<p>.*?</p>', _drop_empty, out)
     out = re.sub(r'(?:<br\s*/?>\s*){3,}', '<br><br>', out)
     out = re.sub(r'\[/?(?:caption|gallery|embed)[^\]]*\]', '', out)
     out = re.sub(r'\n{3,}', '\n\n', out)
